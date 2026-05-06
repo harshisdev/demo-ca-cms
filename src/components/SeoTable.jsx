@@ -59,19 +59,19 @@ export default function SeoTable({ data, onEdit, onDelete, locations }) {
       </div>
 
       <table className="w-full text-sm">
-        <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+        <thead className="bg-gray-100 text-black uppercase text-xs">
           <tr>
-            <th className="text-left px-3 py-3">Location</th>
+            <th className="text-left px-3 py-3 font-extrabold">Location</th>
 
-            <th className="text-left px-3 py-3">Parent</th>
+            <th className="text-left px-3 py-3 font-extrabold">Parent</th>
 
-            <th className="text-left px-3 py-3">Slug</th>
+            <th className="text-left px-3 py-3 font-extrabold">Slug</th>
 
-            <th className="text-left px-3 py-3">Title</th>
+            <th className="text-left px-3 py-3 font-extrabold">Title</th>
 
-            <th className="text-left px-3 py-3">Description</th>
+            <th className="text-left px-3 py-3 font-extrabold">Description</th>
 
-            <th className="px-3 py-3 text-right">Actions</th>
+            <th className="px-3 py-3 text-right font-extrabold">Actions</th>
           </tr>
         </thead>
 

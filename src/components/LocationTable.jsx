@@ -26,7 +26,7 @@ export default function LocationTable({ data, onEdit, onDelete }) {
         />
       </div>
 
-      <div className="px-4 py-2 border-b">
+      <div className="px-4 py-2 border-b font-semibold">
         Total Locations:{" "}
         {cities.length +
           cities.reduce((acc, city) => acc + (city.children?.length || 0), 0)}
@@ -34,17 +34,17 @@ export default function LocationTable({ data, onEdit, onDelete }) {
 
       {/* TABLE */}
       <table className="w-full text-sm">
-        <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+        <thead className="bg-gray-100 text-black uppercase text-xs">
           <tr>
-            <th className="text-left px-4 py-4">Location</th>
+            <th className="text-left px-4 py-4 font-extrabold">Location</th>
 
-            <th className="text-left px-4 py-4">Slug</th>
+            <th className="text-left px-4 py-4 font-extrabold">Slug</th>
 
-            <th className="text-left px-4 py-4">Type</th>
+            <th className="text-left px-4 py-4 font-extrabold">Type</th>
 
-            <th className="text-left px-4 py-4">Parent</th>
+            <th className="text-left px-4 py-4 font-extrabold">Parent</th>
 
-            <th className="text-right px-4 py-4">Actions</th>
+            <th className="text-right px-4 py-4 font-extrabold">Actions</th>
           </tr>
         </thead>
 
@@ -66,8 +66,8 @@ export default function LocationTable({ data, onEdit, onDelete }) {
           return (
             <tbody key={city._id}>
               {/* CITY ROW */}
-              <tr className="bg-gray-50 border-t font-semibold">
-                <td className="px-4 py-4 text-gray-800">
+              <tr className="bg-gray-50 border-t">
+                <td className="px-4 py-4 text-black font-bold">
                   {city.name.charAt(0).toUpperCase() + city.name.slice(1)}
                 </td>
 

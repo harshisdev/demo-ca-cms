@@ -95,9 +95,9 @@ export default function DashboardProfile() {
           setUser(data.user);
         } else {
           // Logout if user not found
-          if (data.message === "User not found") {
+          if (data.success === false || data.message === "User not found") {
+            toast.error("User Multiple Login Detected.");
             handleLogout();
-            router.push("/login");
           }
         }
       } catch (error) {

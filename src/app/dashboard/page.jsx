@@ -207,7 +207,7 @@ export default function Dashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-
+    toast.success("Profile created successfully!");
     setModalOpen(false);
     fetchProfiles();
   };
@@ -251,6 +251,8 @@ export default function Dashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
+
+    toast.success("SEO metadata created successfully!");
 
     setModalOpen(false);
     fetchSeo();
@@ -303,6 +305,8 @@ export default function Dashboard() {
       body: JSON.stringify(form),
     });
 
+    toast.success("Page content created successfully!");
+
     setModalOpen(false);
     fetchPageContent();
   };
@@ -313,6 +317,8 @@ export default function Dashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
+
+    toast.success("Page content updated successfully!");
 
     setModalOpen(false);
     setEditing(null);
@@ -340,7 +346,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex">
-      <Sidebar setView={setView} />
+      <Sidebar view={view} setView={setView} />
 
       <div className="flex-1 p-5">
         {/* HEADER */}

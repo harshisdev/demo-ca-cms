@@ -5,13 +5,19 @@ export function middleware(req) {
 
   const pathname = req.nextUrl.pathname;
 
-  // protected routes
-  if (!token && pathname.startsWith("/dashboard")) {
+  // Auth pages
+  const isAuthPage = pathname === "/login" || pathname === "/register";
+
+  // Protected pages
+  const isDashboard = pathname.startsWith("/dashboard");
+
+  // No token
+  if (!token && isDashboard) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // already logged in
-  if (token && (pathname === "/login" || pathname === "/register")) {
+  // Already logged in
+  if (token && isAuthPage) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

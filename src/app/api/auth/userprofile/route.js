@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { verifyAuth } from "@/lib/auth";
 import fs from "fs";
 import path from "path";
-
-import connectDB from "@/lib/mongodb";
-import UserProfile from "@/models/UserProfile";
 
 // ================= GET PROFILE =================
 export async function GET(req) {
   try {
-    await connectDB();
+    const auth = await verifyAuth(req);
 
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
+    if (!auth.success) {
       return NextResponse.json(
         {
           success: false,
-          message: "Unauthorized",
+          message: auth.message,
         },
         {
           status: 401,
@@ -25,23 +20,7 @@ export async function GET(req) {
       );
     }
 
-    // Verify Token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Find User
-    const user = await UserProfile.findById(decoded.id);
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "User not found",
-        },
-        {
-          status: 404,
-        },
-      );
-    }
+    const user = auth.user;
 
     return NextResponse.json(
       {
@@ -84,15 +63,13 @@ export async function GET(req) {
 // ================= UPDATE PROFILE =================
 export async function POST(req) {
   try {
-    await connectDB();
+    const auth = await verifyAuth(req);
 
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
+    if (!auth.success) {
       return NextResponse.json(
         {
           success: false,
-          message: "Unauthorized",
+          message: auth.message,
         },
         {
           status: 401,
@@ -100,23 +77,7 @@ export async function POST(req) {
       );
     }
 
-    // Verify Token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Find User
-    const user = await UserProfile.findById(decoded.id);
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "User not found",
-        },
-        {
-          status: 404,
-        },
-      );
-    }
+    const user = auth.user;
 
     // Form Data
     const formData = await req.formData();

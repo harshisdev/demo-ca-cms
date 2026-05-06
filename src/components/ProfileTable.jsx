@@ -10,14 +10,14 @@ export default function ProfileTable({ data, onEdit, onDelete }) {
   return (
     <div className="bg-white shadow rounded-xl overflow-hidden">
       <table className="w-full text-sm">
-        <thead className="bg-gray-100 text-left">
+        <thead className="bg-gray-100 text-left text-black uppercase text-xs">
           <tr>
-            <th className="p-3">Profile</th>
-            <th className="p-3">Location</th>
-            <th className="p-3">Experience</th>
-            <th className="p-3">Fee</th>
-            <th className="p-3">Rating</th>
-            <th className="p-3 text-right">Actions</th>
+            <th className="p-3 font-extrabold">Profile</th>
+            <th className="p-3 font-extrabold">Location</th>
+            <th className="p-3 font-extrabold">Experience</th>
+            <th className="p-3 font-extrabold">Fee</th>
+            <th className="p-3 font-extrabold">Rating</th>
+            <th className="p-3 text-right font-extrabold">Actions</th>
           </tr>
         </thead>
 

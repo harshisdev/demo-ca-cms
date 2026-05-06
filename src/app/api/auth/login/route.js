@@ -3,6 +3,7 @@ import UserProfile from "@/models/UserProfile";
 
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
 
 import { NextResponse } from "next/server";
 
@@ -74,16 +75,39 @@ export async function POST(req) {
       );
     }
 
+    // Already logged in check
+    if (user.isLoggedIn) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User already logged in on another device",
+        },
+        {
+          status: 403,
+        },
+      );
+    }
+
+    // Create unique session id
+    const sessionId = uuidv4();
+
+    // Save session
+    user.sessionId = sessionId;
+    user.isLoggedIn = true;
+
+    await user.save();
+
     // Generate JWT Token
     const token = jwt.sign(
       {
         id: user._id,
         role: user.role,
         email: user.email,
+        sessionId, // important
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: "1d",
+        expiresIn: "15m", // session timeout
       },
     );
 
@@ -113,9 +137,9 @@ export async function POST(req) {
     response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 15 * 60,
     });
 
     return response;

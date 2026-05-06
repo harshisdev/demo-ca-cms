@@ -55,18 +55,18 @@ export default function PageContentTable({ data, onEdit, onDelete }) {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
-      <div className="px-4 py-2 border">
+      <div className="px-4 py-2 border font-semibold">
         Total Locations: {filteredData.length}
       </div>
       <table className="w-full text-sm">
-        <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+        <thead className="bg-gray-100 text-black uppercase text-xs">
           <tr>
-            <th className="text-left px-3 py-3">Location</th>
-            <th className="text-left px-3 py-3">Parent</th>
-            <th className="text-left px-3 py-3">Slug</th>
-            <th className="text-left px-3 py-3">Title</th>
-            <th className="text-left px-3 py-3">Content Preview</th>
-            <th className=" px-3 py-3 text-right">Actions</th>
+            <th className="text-left px-3 py-3 font-extrabold">Location</th>
+            <th className="text-left px-3 py-3 font-extrabold">Parent</th>
+            <th className="text-left px-3 py-3 font-extrabold">Slug</th>
+            <th className="text-left px-3 py-3 font-extrabold">Title</th>
+            <th className="text-left px-3 py-3 font-extrabold">Content Preview</th>
+            <th className=" px-3 py-3 text-right font-extrabold">Actions</th>
           </tr>
         </thead>
 

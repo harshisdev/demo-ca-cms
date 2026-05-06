@@ -1,8 +1,6 @@
 "use client";
 
-import LogoutButton from "./DashboardProfile";
-
-export default function Sidebar({ setView }) {
+export default function Sidebar({ setView, view }) {
   return (
     <div className="w-64 bg-gray-900 text-white min-h-screen p-4">
       <h2 className="text-xl font-bold mb-6">
@@ -48,35 +46,55 @@ export default function Sidebar({ setView }) {
           </text>
         </svg>
       </h2>
-
+      <a
+        href="/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block w-full text-left p-2 rounded mb-2 transition hover:bg-gray-700"
+      >
+        View Website
+      </a>
+      {/* Locations */}
       <button
         onClick={() => setView("location")}
-        className="block w-full text-left p-2 hover:bg-gray-700 rounded"
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "location" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
+        }`}
       >
         Locations
       </button>
 
+      {/* CA Profiles */}
       <button
         onClick={() => setView("profile")}
-        className="block w-full text-left p-2 hover:bg-gray-700 rounded"
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "profile" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
+        }`}
       >
         CA Profiles
       </button>
 
+      {/* SEO */}
       <button
         onClick={() => setView("seo")}
-        className="block w-full text-left p-2 hover:bg-gray-700 rounded"
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "seo" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
+        }`}
       >
         SEO Metadata
       </button>
 
+      {/* Page Content */}
       <button
         onClick={() => setView("page-content")}
-        className="block w-full text-left p-2 hover:bg-gray-700 rounded"
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "page-content"
+            ? "bg-blue-600 text-white"
+            : "hover:bg-gray-700"
+        }`}
       >
         Page Content
       </button>
-
     </div>
   );
 }

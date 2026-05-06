@@ -43,6 +43,20 @@ const UserProfileSchema = new mongoose.Schema(
       type: String,
       default: "admin",
     },
+
+    sessionId: {
+      type: String,
+      default: null,
+    },
+
+    lastLogin: {
+      type: Date,
+    },
+
+    isLoggedIn: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
