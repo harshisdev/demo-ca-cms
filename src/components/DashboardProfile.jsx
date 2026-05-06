@@ -9,11 +9,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import UserProfileModal from "./UserProfileModal";
+import toast from "react-hot-toast";
 
 export default function DashboardProfile() {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [openProfile, setOpenProfile] = useState(false);
 
   const dropdownRef = useRef(null);
 
@@ -62,6 +65,43 @@ export default function DashboardProfile() {
     router.refresh();
   };
 
+  const handleUpdateUser = async (updatedUser) => {
+    try {
+      const formData = new FormData();
+
+      // Append Fields
+      formData.append("name", updatedUser.name);
+      formData.append("email", updatedUser.email);
+      formData.append("mobile", updatedUser.mobile);
+      formData.append("address", updatedUser.address);
+
+      // Append Image
+      if (updatedUser.imageFile) {
+        formData.append("image", updatedUser.imageFile);
+      }
+
+      // API Call
+      const response = await fetch("/api/auth/userprofile", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Profile updated successfully!");
+        // Update Local State
+        setUser(data.user);
+
+        // Close Modal
+        setOpenProfile(false);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to update profile.");
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -96,6 +136,20 @@ export default function DashboardProfile() {
       {/* DROPDOWN */}
       {open && (
         <div className="absolute right-0 bg-white border shadow-lg z-50 overflow-hidden">
+          <button
+            onClick={() => setOpenProfile(true)}
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left border-b"
+          >
+            View Profile
+          </button>
+
+          {openProfile && (
+            <UserProfileModal
+              user={user}
+              setOpenProfile={setOpenProfile}
+              onUpdate={handleUpdateUser}
+            />
+          )}
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-600 text-left"
