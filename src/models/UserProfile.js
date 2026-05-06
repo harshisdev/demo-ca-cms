@@ -16,9 +16,27 @@ const UserProfileSchema = new mongoose.Schema(
       trim: true,
     },
 
+    mobile: {
+      type: String, // better than Number
+      required: true,
+      trim: true,
+    },
+
+    address: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     image: {
       type: String,
       default: "",
+    },
+
+    password: {
+      type: String,
+      required: true,
+      select: false,
     },
 
     role: {

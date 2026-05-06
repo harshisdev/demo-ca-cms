@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const router = useRouter();
@@ -12,8 +14,8 @@ export default function Login() {
     password: "",
     role: "admin",
   });
-  const [showPassword, setShowPassword] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -41,7 +43,6 @@ export default function Login() {
 
       if (data.success) {
         toast.success("Login successful 🎉");
-
         router.push("/dashboard");
       } else {
         toast.error(data.message || "Login failed");
@@ -54,73 +55,83 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-md border border-gray-100">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
-          Admin Login
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-purple-100 px-4">
+      <div className="w-full max-w-md bg-white rounded-3xl p-8 border border-gray-100">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mt-4">
+            Welcome Back
+          </h1>
 
-        <p className="text-center text-sm text-gray-500 mb-8">
-          Access admin dashboard
-        </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Login to your admin account
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email */}
-          <div className="space-y-1">
-            <label className="text-sm text-gray-600">Email</label>
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Email Address
+            </label>
+
             <input
               type="email"
               placeholder="admin@example.com"
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+              value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
 
           {/* Password */}
-          <div className="space-y-1 relative">
-            <label className="text-sm text-gray-600">Password</label>
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Password
+            </label>
 
             <input
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none pr-12"
+              value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none pr-12"
             />
 
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9 text-gray-500 text-sm"
+              className="absolute right-4 top-[46px] text-gray-500"
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-          {/* Role */}
-          {/* <div className="space-y-1">
-            <label className="text-sm text-gray-600">Login As</label>
 
-            <select
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-            >
-              <option value="admin">Admin</option>
-            </select>
-          </div> */}
-
-          {/* Button */}
+          {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg flex justify-center items-center"
+            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg transition duration-300 flex justify-center items-center"
           >
             {loading ? (
-              <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
             ) : (
-              "Login as Admin"
+              "Login"
             )}
           </button>
         </form>
+
+        {/* Bottom */}
+        <div className="mt-6 text-center text-sm text-gray-600">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/register"
+            className="text-indigo-600 font-semibold hover:underline"
+          >
+            Register
+          </Link>
+        </div>
       </div>
     </div>
   );
