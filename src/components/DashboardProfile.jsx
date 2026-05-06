@@ -22,24 +22,6 @@ export default function DashboardProfile() {
 
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/auth/userprofile");
-
-        const data = await res.json();
-
-        if (data.success) {
-          setUser(data.user);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
   // close dropdown outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -101,6 +83,30 @@ export default function DashboardProfile() {
       toast.error("Failed to update profile.");
     }
   };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/auth/userprofile");
+
+        const data = await res.json();
+
+        if (data.success) {
+          setUser(data.user);
+        } else {
+          // Logout if user not found
+          if (data.message === "User not found") {
+            handleLogout();
+            router.push("/login");
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchProfile();
+  }, [router]);
 
   if (!user) {
     return null;
