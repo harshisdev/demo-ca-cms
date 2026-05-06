@@ -53,6 +53,11 @@ const UserProfileSchema = new mongoose.Schema(
       type: Date,
     },
 
+    lastActivity: {
+      type: Date,
+      default: Date.now,
+    },
+
     isLoggedIn: {
       type: Boolean,
       default: false,

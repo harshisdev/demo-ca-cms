@@ -80,6 +80,7 @@ export async function POST(req) {
       return NextResponse.json(
         {
           success: false,
+          logoutAll: true,
           message: "User already logged in on another device",
         },
         {
@@ -87,13 +88,15 @@ export async function POST(req) {
         },
       );
     }
-
     // Create unique session id
     const sessionId = uuidv4();
 
     // Save session
     user.sessionId = sessionId;
     user.isLoggedIn = true;
+
+    // Track activity time
+    user.lastActivity = new Date();
 
     await user.save();
 
@@ -107,7 +110,7 @@ export async function POST(req) {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: "15m", // session timeout
+        expiresIn: "1d",
       },
     );
 

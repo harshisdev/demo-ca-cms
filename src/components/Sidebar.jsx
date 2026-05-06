@@ -50,7 +50,7 @@ export default function Sidebar({ setView, view }) {
         href="/"
         target="_blank"
         rel="noopener noreferrer"
-        className="block w-full text-left p-2 rounded mb-2 transition hover:bg-gray-700"
+        className="block w-full text-left p-2 rounded mb-2 transition bg-slate-500 hover:bg-slate-600 text-white"
       >
         View Website
       </a>

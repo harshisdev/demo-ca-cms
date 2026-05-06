@@ -16,12 +16,69 @@ export default function Login() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
+  const [showModal, setShowModal] = useState(false);
+
+  const [pendingForm, setPendingForm] = useState(null);
+
+  // ================= LOGOUT ALL DEVICES =================
+  const handleLogoutAll = async () => {
+    try {
+      const logoutRes = await fetch("/api/auth/logout-all", {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          email: pendingForm.email,
+        }),
+      });
+
+      const logoutData = await logoutRes.json();
+
+      if (!logoutData.success) {
+        return toast.error(logoutData.message);
+      }
+
+      toast.success("All devices logged out");
+
+      // Close Modal
+      setShowModal(false);
+
+      // Auto Login Again
+      const retryRes = await fetch("/api/auth/login", {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(pendingForm),
+      });
+
+      const retryData = await retryRes.json();
+
+      if (retryData.success) {
+        toast.success("Login successful 🎉");
+
+        window.location.href = "/dashboard";
+      } else {
+        toast.error(retryData.message);
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+  };
+
+  // ================= LOGIN =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // validation
+    // Validation
     if (!form.email || !form.password) {
       return toast.error("All fields are required");
     }
@@ -41,12 +98,26 @@ export default function Login() {
 
       const data = await res.json();
 
+      // Login Success
       if (data.success) {
+        window.location.href = "/dashboard";
         toast.success("Login successful 🎉");
-        router.push("/dashboard");
-      } else {
-        toast.error(data.message || "Login failed");
+
+        return;
       }
+
+      // Already Logged In
+      if (data.logoutAll) {
+        setPendingForm(form);
+
+        setShowModal(true);
+
+        setLoading(false);
+
+        return;
+      }
+
+      toast.error(data.message==="User not found" ? "Invalid email" : data.message);
     } catch (error) {
       toast.error("Something went wrong");
     }
@@ -56,7 +127,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-purple-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-3xl p-8 border border-gray-100">
+      <div className="w-full max-w-md bg-white rounded-3xl p-8 border border-gray-100 shadow-xl">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mt-4">
@@ -80,7 +151,12 @@ export default function Login() {
               type="email"
               placeholder="admin@example.com"
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  email: e.target.value,
+                })
+              }
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
@@ -95,7 +171,12 @@ export default function Login() {
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  password: e.target.value,
+                })
+              }
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none pr-12"
             />
 
@@ -132,6 +213,44 @@ export default function Login() {
             Register
           </Link>
         </div>
+
+        {/* ================= MODAL ================= */}
+        {showModal && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 px-4">
+            <div className="w-full max-w-md rounded-sm bg-white p-6">
+              <h2 className="text-lg font-bold text-gray-800">
+                Already Logged In
+              </h2>
+
+              <p className="mt-3 text-gray-600">
+                This account is already logged in on another device.
+              </p>
+
+              <p className="mt-1 text-gray-600">
+                Do you want to logout all devices?
+              </p>
+
+              {/* Buttons */}
+              <div className="mt-6 flex justify-end gap-3">
+                {/* NO */}
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="rounded border border-gray-300 px-5 py-2 font-medium hover:bg-gray-100"
+                >
+                  No
+                </button>
+
+                {/* YES */}
+                <button
+                  onClick={handleLogoutAll}
+                  className="rounded bg-red-500 px-5 py-2 text-white font-medium hover:bg-red-600"
+                >
+                  Yes, Logout All
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
