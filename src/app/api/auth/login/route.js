@@ -13,7 +13,7 @@ export async function POST(req) {
     await connectDB();
 
     // Get request body
-    const { email, password, role } = await req.json();
+    const { email, password, role, forceLogin } = await req.json();
 
     // Validation
     if (!email || !password || !role) {
@@ -75,46 +75,62 @@ export async function POST(req) {
       );
     }
 
-    // Already logged in check
-    if (user.isLoggedIn) {
-      return NextResponse.json(
-        {
-          success: false,
-          logoutAll: true,
-          message: "User already logged in on another device",
-        },
-        {
-          status: 403,
-        },
-      );
+    // ================= ACTIVE SESSION CHECK =================
+
+    if (user.isLoggedIn && user.sessionId && user.lastActivity) {
+      const now = Date.now();
+
+      const lastActivity = new Date(user.lastActivity).getTime();
+
+      const diffMinutes = (now - lastActivity) / 1000 / 60;
+
+      // Session still active
+      if (diffMinutes <= 1 && !forceLogin) {
+        return NextResponse.json(
+          {
+            success: false,
+            logoutAll: true,
+            message: "User already logged in on another device",
+          },
+          { status: 403 },
+        );
+      }
+
+      // Auto clear expired session
+      user.sessionId = null;
+      user.isLoggedIn = false;
+      user.lastActivity = null;
+
+      await user.save();
     }
-    // Create unique session id
+
+    // ================= CREATE NEW SESSION =================
+
     const sessionId = uuidv4();
 
-    // Save session
     user.sessionId = sessionId;
     user.isLoggedIn = true;
-
-    // Track activity time
     user.lastActivity = new Date();
 
     await user.save();
 
-    // Generate JWT Token
+    // ================= GENERATE TOKEN =================
+
     const token = jwt.sign(
       {
         id: user._id,
         role: user.role,
         email: user.email,
-        sessionId, // important
+        sessionId,
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: "1d",
+        expiresIn: "7d",
       },
     );
 
-    // Create Response
+    // ================= RESPONSE =================
+
     const response = NextResponse.json(
       {
         success: true,
@@ -136,13 +152,14 @@ export async function POST(req) {
       },
     );
 
-    // Set Cookie
+    // ================= COOKIE =================
+
     response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 15 * 60,
+      maxAge: 7 * 24 * 60 * 60,
     });
 
     return response;

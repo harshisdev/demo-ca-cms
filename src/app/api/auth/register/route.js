@@ -2,12 +2,13 @@ import connectDB from "@/lib/mongodb";
 import UserProfile from "@/models/UserProfile";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
+import cloudinary from "@/lib/cloudinary";
 
 export async function POST(req) {
   try {
     await connectDB();
 
-    // FormData receive
+    // Receive FormData
     const formData = await req.formData();
 
     const name = formData.get("name");
@@ -54,27 +55,46 @@ export async function POST(req) {
       );
     }
 
-    // Convert image buffer
+    // Validate image size (2MB)
+    const maxSize = 2 * 1024 * 1024;
+
+    if (image.size > maxSize) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Image size should be less than 2MB",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Convert image to buffer
     const bytes = await image.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create image path
-    const fileName = `${Date.now()}-${image.name}`;
+    // Convert buffer to base64
+    const base64Image = `data:${image.type};base64,${buffer.toString(
+      "base64",
+    )}`;
 
-    // Save inside public/uploads
-    const fs = require("fs");
-    const path = require("path");
+    // Upload image to Cloudinary
+    let uploadResponse;
 
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    try {
+      uploadResponse = await cloudinary.uploader.upload(base64Image, {
+        folder: "uploads",
+      });
+    } catch (uploadError) {
+      console.log(uploadError);
 
-    // Create folder if not exists
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Image upload failed",
+        },
+        { status: 500 },
+      );
     }
-
-    const filePath = path.join(uploadDir, fileName);
-
-    fs.writeFileSync(filePath, buffer);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -87,14 +107,13 @@ export async function POST(req) {
       address,
       password: hashedPassword,
       role: "admin",
-      image: `/uploads/${fileName}`,
+      image: uploadResponse.secure_url,
     });
 
     return NextResponse.json(
       {
         success: true,
         message: "Admin registered successfully",
-
         user: {
           _id: user._id,
           name: user.name,

@@ -18,6 +18,7 @@ export async function POST(req) {
       if (user) {
         user.sessionId = null;
         user.isLoggedIn = false;
+        user.lastActivity = null;
 
         await user.save();
       }

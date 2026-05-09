@@ -228,6 +228,15 @@ export default function Register() {
                             );
                           }
 
+                          // Validate image size (2MB)
+                          const maxSize = 2 * 1024 * 1024;
+
+                          if (file.size > maxSize) {
+                            return toast.error(
+                              "Image size should be less than 2MB",
+                            );
+                          }
+
                           setForm({
                             ...form,
                             image: file,

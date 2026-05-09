@@ -49,9 +49,15 @@ export default function Dashboard() {
   };
 
   const fetchProfiles = async () => {
-    const res = await fetch("/api/profile");
-    const data = await res.json();
-    setProfiles(data);
+    try {
+      const res = await fetch("/api/profile");
+
+      const data = await res.json();
+
+      setProfiles(data.profiles || []);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   // 🔥 Auto generate slug
@@ -129,52 +135,52 @@ export default function Dashboard() {
   };
 
   // ================= UPDATE =================
- const handleUpdate = async () => {
-  try {
-    const res = await fetch("/api/location", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: editing._id,
-        ...form,
-      }),
-    });
+  const handleUpdate = async () => {
+    try {
+      const res = await fetch("/api/location", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: editing._id,
+          ...form,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    // ❌ API Error
-    if (!res.ok) {
-      toast.error(data.error || "Failed to update location");
+      // ❌ API Error
+      if (!res.ok) {
+        toast.error(data.error || "Failed to update location");
+
+        // 🔥 Keep modal open
+        setModalOpen(true);
+
+        return;
+      }
+
+      // ✅ Success
+      toast.success("Location updated successfully!");
+
+      setEditing(null);
+
+      setModalOpen(false);
+
+      setForm(emptyForm);
+
+      setEditSlug(false);
+
+      fetchData();
+    } catch (err) {
+      console.error("Update error:", err);
+
+      toast.error("Something went wrong");
 
       // 🔥 Keep modal open
       setModalOpen(true);
-
-      return;
     }
-
-    // ✅ Success
-    toast.success("Location updated successfully!");
-
-    setEditing(null);
-
-    setModalOpen(false);
-
-    setForm(emptyForm);
-
-    setEditSlug(false);
-
-    fetchData();
-  } catch (err) {
-    console.error("Update error:", err);
-
-    toast.error("Something went wrong");
-
-    // 🔥 Keep modal open
-    setModalOpen(true);
-  }
-};
+  };
 
   // ================= DELETE =================
   const handleDelete = async (id) => {
@@ -341,7 +347,6 @@ export default function Dashboard() {
     if (view === "profile") fetchProfiles();
     if (view === "seo") fetchSeo();
     if (view === "page-content") fetchPageContent();
-    
   }, [view]);
 
   return (
@@ -478,7 +483,7 @@ export default function Dashboard() {
           isEdit={!!editing}
           onSubmit={editing ? handleUpdatePageContent : handleCreatePageContent}
           locations={locations}
-          data={pageContentList }
+          data={pageContentList}
         />
       ) : null}
     </div>

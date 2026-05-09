@@ -36,13 +36,8 @@ export default function SeoTable({ data, onEdit, onDelete, locations }) {
     );
   });
 
-  if (!data.length) {
-    return <p className="text-gray-500">No SEO data</p>;
-  }
-
   return (
     <div className="overflow-x-auto">
-      {/* SEARCH */}
       <div className="mb-4">
         <input
           type="text"
@@ -53,7 +48,6 @@ export default function SeoTable({ data, onEdit, onDelete, locations }) {
         />
       </div>
 
-      {/* TOTAL */}
       <div className="px-4 py-2 border">
         Total Locations: {filteredData.length}
       </div>
@@ -83,27 +77,16 @@ export default function SeoTable({ data, onEdit, onDelete, locations }) {
 
               return (
                 <tr key={item._id} className="border-t hover:bg-gray-50">
-                  {/* LOCATION */}
                   <td className="px-3 py-2">{location.name || "-"}</td>
-
-                  {/* PARENT */}
                   <td className="px-3 py-2">{location.parent || "-"}</td>
-
-                  {/* SLUG */}
                   <td className="px-3 py-2">{item.path}</td>
-
-                  {/* TITLE */}
                   <td className="px-3 py-2">{item.title}</td>
-
-                  {/* DESCRIPTION */}
                   <td className="px-3 py-2 text-gray-600 max-w-[300px]">
                     <div className="truncate">
                       {item.description?.slice(0, 80)}
                       ...
                     </div>
                   </td>
-
-                  {/* ACTIONS */}
                   <td className="px-3 py-2 text-right">
                     <button onClick={() => onEdit(item)} className="mr-2">
                       <FontAwesomeIcon icon={faPen} />
@@ -119,7 +102,7 @@ export default function SeoTable({ data, onEdit, onDelete, locations }) {
           ) : (
             <tr>
               <td colSpan={6} className="text-center py-6 text-gray-500">
-                No data found
+                No SEO data found for the current locations.
               </td>
             </tr>
           )}

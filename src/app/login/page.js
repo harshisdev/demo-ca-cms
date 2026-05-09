@@ -26,30 +26,6 @@ export default function Login() {
   // ================= LOGOUT ALL DEVICES =================
   const handleLogoutAll = async () => {
     try {
-      const logoutRes = await fetch("/api/auth/logout-all", {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          email: pendingForm.email,
-        }),
-      });
-
-      const logoutData = await logoutRes.json();
-
-      if (!logoutData.success) {
-        return toast.error(logoutData.message);
-      }
-
-      toast.success("All devices logged out");
-
-      // Close Modal
-      setShowModal(false);
-
-      // Auto Login Again
       const retryRes = await fetch("/api/auth/login", {
         method: "POST",
 
@@ -57,7 +33,10 @@ export default function Login() {
           "Content-Type": "application/json",
         },
 
-        body: JSON.stringify(pendingForm),
+        body: JSON.stringify({
+          ...pendingForm,
+          forceLogin: true,
+        }),
       });
 
       const retryData = await retryRes.json();
@@ -65,11 +44,15 @@ export default function Login() {
       if (retryData.success) {
         toast.success("Login successful 🎉");
 
-        window.location.href = "/dashboard";
+        setShowModal(false);
+
+        router.push("/dashboard");
       } else {
         toast.error(retryData.message);
       }
     } catch (error) {
+      console.log(error);
+
       toast.error("Something went wrong");
     }
   };
@@ -117,7 +100,9 @@ export default function Login() {
         return;
       }
 
-      toast.error(data.message==="User not found" ? "Invalid email" : data.message);
+      toast.error(
+        data.message === "User not found" ? "Invalid email" : data.message,
+      );
     } catch (error) {
       toast.error("Something went wrong");
     }

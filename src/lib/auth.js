@@ -26,26 +26,18 @@ export async function verifyAuth(req) {
       };
     }
 
-    // Multiple login detection
-    if (user.sessionId !== decoded.sessionId) {
-      return {
-        success: false,
-        message: "Your account was logged in on another device",
-      };
-    }
-
-    // Check inactivity timeout
+    // Check inactivity timeout first
     const now = Date.now();
 
     const lastActivity = new Date(user.lastActivity).getTime();
 
     const diffMinutes = (now - lastActivity) / 1000 / 60;
 
-    // 15 minute idle logout
-    if (diffMinutes > 15) {
+    // Session expired
+    if (diffMinutes > 1) {
       // Clear session
-      user.isLoggedIn = false;
       user.sessionId = null;
+      user.isLoggedIn = false;
       user.lastActivity = null;
 
       await user.save();
@@ -56,19 +48,51 @@ export async function verifyAuth(req) {
       };
     }
 
-    // Update activity time
-    user.lastActivity = new Date();
+    // Multiple login detection
+    if (user.sessionId !== decoded.sessionId) {
+      return {
+        success: false,
+        message: "Your account was logged in on another device",
+      };
+    }
 
-    await user.save();
+    // Logout after 60 minutes inactivity
+    if (diffMinutes > 60) {
+      return {
+        success: false,
+        message: "Session expired due to inactivity",
+      };
+    }
+
+    // Update activity every 2 minutes only
+    if (diffMinutes > 2) {
+      user.lastActivity = new Date();
+      await user.save();
+    }
 
     return {
       success: true,
       user,
     };
   } catch (error) {
-    return {
-      success: false,
-      message: "Invalid token",
-    };
+    try {
+      const token = req.cookies.get("token")?.value;
+      if (token) {
+        const decoded = jwt.decode(token);
+        if (decoded?.id) {
+          await connectDB();
+          const user = await UserProfile.findById(decoded.id);
+          if (user) {
+            user.sessionId = null;
+            user.isLoggedIn = false;
+            user.lastActivity = null;
+            await user.save();
+          }
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    return { success: false, message: "Invalid token" };
   }
 }

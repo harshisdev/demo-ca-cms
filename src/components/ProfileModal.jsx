@@ -2,17 +2,157 @@
 
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Upload } from "lucide-react";
 import { useEffect } from "react";
+import toast from "react-hot-toast";
 
 export default function ProfileModal({
   isOpen,
   onClose,
-  form,
+  form = {},
   setForm,
   onSubmit,
   isEdit,
 }) {
-  // AUTO SLUG
+  // OPTIONS
+  const designationOptions = [
+    "Chartered Accountant",
+    "Tax Consultant",
+    "GST Consultant",
+    "Financial Advisor",
+    "Auditor",
+  ];
+
+  const specializationOptions = [
+    "GST Filing",
+    "Income Tax",
+    "Business Registration",
+    "Company Audit",
+    "TDS Filing",
+    "Accounting",
+  ];
+
+  const qualificationOptions = [
+    "CA",
+    "CA Inter",
+    "MBA Finance",
+    "B.Com",
+    "M.Com",
+  ];
+
+  const experienceOptions = Array.from(
+    { length: 20 },
+    (_, i) => `${i + 1} Years`,
+  );
+
+  const ratingOptions = ["1", "2", "3", "4", "5"];
+
+  const cityOptions = ["Delhi", "Mumbai", "Patna", "Kolkata", "Bangalore"];
+
+  const areaOptions = [
+    "Main Road",
+    "Boring Road",
+    "Kankarbagh",
+    "Sector 18",
+    "MG Road",
+  ];
+
+  const serviceOptions = [
+    "GST Filing",
+    "Income Tax Return",
+    "Audit",
+    "Company Registration",
+    "TDS Filing",
+  ];
+
+  const languageOptions = ["Hindi", "English", "Gujarati", "Marathi"];
+
+  const handleCheckbox = (field, value) => {
+    const current = form[field] || [];
+
+    if (current.includes(value)) {
+      setForm({
+        ...form,
+        [field]: current.filter((item) => item !== value),
+      });
+    } else {
+      setForm({
+        ...form,
+        [field]: [...current, value],
+      });
+    }
+  };
+
+  const validateAndSubmit = () => {
+    const requiredFields = {
+      name: "Name",
+      email: "Email",
+      mobile: "Mobile Number",
+      // designation: "Designation",
+      // specialization: "Specialization",
+      // qualification: "Qualification",
+      // city: "City",
+      // area: "Area",
+      // experience: "Experience",
+      // rating: "Rating",
+      // address: "Address",
+      // about: "About",
+    };
+
+    for (const key in requiredFields) {
+      if (!form[key]) {
+        return toast.error(`${requiredFields[key]} is required`);
+      }
+    }
+
+    // Services validation
+    if (!form.services?.length) {
+      return toast.error("Please select at least one service");
+    }
+
+    // Languages validation
+    if (!form.languages?.length) {
+      return toast.error("Please select at least one language");
+    }
+
+    onSubmit();
+  };
+
+  const addFaq = () => {
+    setForm({
+      ...form,
+      faq: [
+        ...(form.faq || []),
+        {
+          question: "",
+          answer: "",
+        },
+      ],
+    });
+  };
+
+  const removeFaq = (index) => {
+    const updatedFaq = [...form.faq];
+
+    updatedFaq.splice(index, 1);
+
+    setForm({
+      ...form,
+      faq: updatedFaq,
+    });
+  };
+
+  const handleFaqChange = (index, field, value) => {
+    const updatedFaq = [...form.faq];
+
+    updatedFaq[index][field] = value;
+
+    setForm({
+      ...form,
+      faq: updatedFaq,
+    });
+  };
+
   useEffect(() => {
     if (form.name && !form.slug) {
       setForm((prev) => ({
@@ -22,373 +162,481 @@ export default function ProfileModal({
     }
   }, [form.name]);
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/profile");
+
+        const data = await res.json();
+
+        console.log(data);
+
+        if (data.success && data.profiles?.length > 0) {
+          const profile = data.profiles[0];
+
+          setForm({
+            ...profile,
+            services: profile.services || [],
+            languages: profile.languages || [],
+            faq: profile.faq || [],
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // AFTER all hooks
   if (!isOpen) return null;
 
-  const handleArray = (field, value) => {
-    setForm({
-      ...form,
-      [field]: value.split(",").map((v) => v.trim()),
-    });
-  };
-
-  const safeJSON = (value, field) => {
-    try {
-      setForm({ ...form, [field]: JSON.parse(value || "[]") });
-    } catch {
-      console.log("Invalid JSON");
-    }
-  };
-
-  // WORKING HOURS CONFIG
-  const days = [
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-    "sunday",
-  ];
-
-  const timeOptions = [
-    "09:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "01:00 PM",
-    "02:00 PM",
-    "03:00 PM",
-    "04:00 PM",
-    "05:00 PM",
-    "06:00 PM",
-    "07:00 PM",
-    "08:00 PM",
-  ];
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-start pt-10 z-50">
-      <div className="bg-white p-6 py-0 w-[800px] rounded shadow-lg max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white z-10 flex justify-between items-center mb-4 pb-2 pt-6">
-          <h2 className="text-lg font-bold">
-            {isEdit ? "Edit Profile" : "Add Profile"}
-          </h2>
+    <div className="fixed inset-0 bg-black/60 z-50 overflow-y-auto">
+      <div className="min-h-screen flex justify-center items-start py-10 px-4">
+        <div className="bg-white w-full max-w-6xl rounded-3xl shadow-2xl overflow-hidden">
+          {/* HEADER */}
+          <div className="sticky top-0 bg-white border-b px-6 py-5 z-20 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">
+                {isEdit ? "Update CA Profile" : "Create CA Profile"}
+              </h2>
 
-          <button onClick={onClose} className="text-gray-500 hover:text-black">
-            <FontAwesomeIcon icon={faXmark} className="text-xl" />
-          </button>
-        </div>
-
-        {/* BASIC */}
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            className="input"
-            placeholder="Name"
-            value={form.name || ""}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-
-          <input
-            className="input"
-            placeholder="Slug"
-            value={form.slug || ""}
-            onChange={(e) => setForm({ ...form, slug: e.target.value })}
-          />
-
-          <input
-            className="input"
-            placeholder="Designation"
-            value={form.designation || ""}
-            onChange={(e) => setForm({ ...form, designation: e.target.value })}
-          />
-
-          <input
-            className="input"
-            placeholder="Specialization"
-            value={form.specialization || ""}
-            onChange={(e) =>
-              setForm({ ...form, specialization: e.target.value })
-            }
-          />
-
-          <input
-            className="input"
-            placeholder="Qualification"
-            value={form.qualification || ""}
-            onChange={(e) =>
-              setForm({ ...form, qualification: e.target.value })
-            }
-          />
-
-          <input
-            className="input"
-            placeholder="Membership"
-            value={form.membership || ""}
-            onChange={(e) => setForm({ ...form, membership: e.target.value })}
-          />
-        </div>
-
-        {/* LOCATION */}
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            className="input"
-            placeholder="City"
-            value={form.city || ""}
-            onChange={(e) => setForm({ ...form, city: e.target.value })}
-          />
-
-          <input
-            className="input"
-            placeholder="Areas"
-            value={form.areas?.join(", ") || ""}
-            onChange={(e) => handleArray("areas", e.target.value)}
-          />
-        </div>
-
-        {/* BUSINESS */}
-        <div className="grid grid-cols-3 gap-4">
-          <input
-            className="input"
-            placeholder="Fee"
-            value={form.fee || ""}
-            onChange={(e) => setForm({ ...form, fee: e.target.value })}
-          />
-
-          <input
-            className="input"
-            placeholder="Experience"
-            value={form.experience || ""}
-            onChange={(e) => setForm({ ...form, experience: e.target.value })}
-          />
-
-          <input
-            className="input"
-            placeholder="Clients"
-            value={form.clients || ""}
-            onChange={(e) => setForm({ ...form, clients: e.target.value })}
-          />
-
-          <input
-            className="input"
-            placeholder="Rating"
-            value={form.rating || ""}
-            onChange={(e) => setForm({ ...form, rating: e.target.value })}
-          />
-
-          <input
-            className="input"
-            placeholder="Availability"
-            value={form.availability || ""}
-            onChange={(e) => setForm({ ...form, availability: e.target.value })}
-          />
-        </div>
-
-        {/* ARRAYS */}
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            className="input"
-            placeholder="Services"
-            value={form.services?.join(", ") || ""}
-            onChange={(e) => handleArray("services", e.target.value)}
-          />
-
-          <input
-            className="input"
-            placeholder="Languages"
-            value={form.languages?.join(", ") || ""}
-            onChange={(e) => handleArray("languages", e.target.value)}
-          />
-
-          <input
-            className="input"
-            placeholder="Highlights"
-            value={form.highlights?.join(", ") || ""}
-            onChange={(e) => handleArray("highlights", e.target.value)}
-          />
-
-          <input
-            className="input"
-            placeholder="Certifications"
-            value={form.certifications?.join(", ") || ""}
-            onChange={(e) => handleArray("certifications", e.target.value)}
-          />
-        </div>
-
-        {/* CONTACT */}
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            className="input"
-            placeholder="Phone"
-            value={form.phone || ""}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          />
-
-          <input
-            className="input"
-            placeholder="Email"
-            value={form.email || ""}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
-
-          <input
-            className="input col-span-2"
-            placeholder="Address"
-            value={form.address || ""}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-          />
-        </div>
-
-        {/* ABOUT */}
-        <textarea
-          className="input h-24"
-          placeholder="About"
-          value={form.about || ""}
-          onChange={(e) => setForm({ ...form, about: e.target.value })}
-        />
-
-        {/* WORKING HOURS */}
-        <div>
-          <h3 className="font-semibold mb-2">Working Hours</h3>
-
-          {days.map((day) => (
-            <div key={day} className="flex items-center gap-3 mb-2">
-              <input
-                type="checkbox"
-                checked={!!form.workingHours?.[day]}
-                onChange={(e) => {
-                  const updated = { ...form.workingHours };
-                  if (e.target.checked) {
-                    updated[day] = "10:00 AM - 07:00 PM";
-                  } else {
-                    delete updated[day];
-                  }
-                  setForm({ ...form, workingHours: updated });
-                }}
-              />
-
-              <span className="w-24 capitalize">{day}</span>
-
-              <select
-                className="input"
-                value={form.workingHours?.[day]?.split(" - ")[0] || ""}
-                onChange={(e) => {
-                  const end =
-                    form.workingHours?.[day]?.split(" - ")[1] || "07:00 PM";
-                  setForm({
-                    ...form,
-                    workingHours: {
-                      ...form.workingHours,
-                      [day]: `${e.target.value} - ${end}`,
-                    },
-                  });
-                }}
-              >
-                <option value="">Start</option>
-                {timeOptions.map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
-
-              <select
-                className="input"
-                value={form.workingHours?.[day]?.split(" - ")[1] || ""}
-                onChange={(e) => {
-                  const start =
-                    form.workingHours?.[day]?.split(" - ")[0] || "10:00 AM";
-                  setForm({
-                    ...form,
-                    workingHours: {
-                      ...form.workingHours,
-                      [day]: `${start} - ${e.target.value}`,
-                    },
-                  });
-                }}
-              >
-                <option value="">End</option>
-                {timeOptions.map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
+              <p className="text-sm text-gray-500 mt-1">
+                Manage chartered accountant professional profile
+              </p>
             </div>
-          ))}
-        </div>
-
-        {/* SOCIAL */}
-        <div className="grid grid-cols-3 gap-4">
-          <input
-            className="input"
-            placeholder="LinkedIn"
-            value={form.social?.linkedin || ""}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                social: { ...form.social, linkedin: e.target.value },
-              })
-            }
-          />
-
-          <input
-            className="input"
-            placeholder="Twitter"
-            value={form.social?.twitter || ""}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                social: { ...form.social, twitter: e.target.value },
-              })
-            }
-          />
-
-          <input
-            className="input"
-            placeholder="Facebook"
-            value={form.social?.facebook || ""}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                social: { ...form.social, facebook: e.target.value },
-              })
-            }
-          />
-        </div>
-
-        {/* JSON */}
-        <textarea
-          className="input h-32"
-          placeholder="Reviews JSON"
-          value={JSON.stringify(form.reviews || [], null, 2)}
-          onChange={(e) => safeJSON(e.target.value, "reviews")}
-        />
-
-        <textarea
-          className="input h-32"
-          placeholder="FAQ JSON"
-          value={JSON.stringify(form.faq || [], null, 2)}
-          onChange={(e) => safeJSON(e.target.value, "faq")}
-        />
-
-        {/* ACTION */}
-        <div className="sticky bottom-0 left-0 right-0 bg-white z-20 px-6 py-4 mt-6 shadow-sm">
-          <div className="flex justify-end gap-3">
-            <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
-              Cancel
-            </button>
 
             <button
-              onClick={onSubmit}
-              className="px-4 py-2 bg-green-600 text-white rounded"
+              onClick={onClose}
+              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200"
             >
-              {isEdit ? "Update" : "Create"}
+              <FontAwesomeIcon icon={faXmark} />
             </button>
+          </div>
+
+          <div className="p-6 space-y-8">
+            {/* IMAGE */}
+            <div className="bg-gray-50 border rounded-2xl p-6">
+              <h3 className="section-title">Profile Image</h3>
+
+              <div className="flex items-center gap-5">
+                {form.preview ? (
+                  <img
+                    src={form.preview}
+                    alt="Preview"
+                    className="w-24 h-24 rounded-2xl object-cover border"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-2xl bg-gray-200 flex items-center justify-center text-gray-400">
+                    No Image
+                  </div>
+                )}
+
+                <label className="cursor-pointer">
+                  <div className="inline-flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700">
+                    <Upload size={18} />
+                    Upload Image
+                  </div>
+
+                  <input
+                    type="file"
+                    hidden
+                    accept=".png,.jpg,.jpeg"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+
+                      if (!file) return;
+
+                      const allowedTypes = [
+                        "image/png",
+                        "image/jpeg",
+                        "image/jpg",
+                      ];
+
+                      if (!allowedTypes.includes(file.type)) {
+                        return toast.error("Only PNG and JPG images allowed");
+                      }
+
+                      const maxSize = 2 * 1024 * 1024;
+
+                      if (file.size > maxSize) {
+                        return toast.error(
+                          "Image size should be less than 2MB",
+                        );
+                      }
+
+                      setForm({
+                        ...form,
+                        image: file,
+                        preview: URL.createObjectURL(file),
+                      });
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* BASIC */}
+            <div className="card">
+              <h3 className="section-title">Basic Information</h3>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <input
+                  className="input"
+                  placeholder="Full Name *"
+                  value={form.name || ""}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+
+                <input
+                  className="input"
+                  placeholder="Slug"
+                  value={form.slug || ""}
+                  onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                />
+
+                <select
+                  className="input"
+                  value={form.designation || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, designation: e.target.value })
+                  }
+                >
+                  <option value="">Select Designation *</option>
+
+                  {designationOptions.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+
+                <select
+                  className="input"
+                  value={form.specialization || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, specialization: e.target.value })
+                  }
+                >
+                  <option value="">Select Specialization *</option>
+
+                  {specializationOptions.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+
+                <select
+                  className="input"
+                  value={form.qualification || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, qualification: e.target.value })
+                  }
+                >
+                  <option value="">Select Qualification *</option>
+
+                  {qualificationOptions.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+
+                <input
+                  className="input"
+                  placeholder="Membership Number"
+                  value={form.membership || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, membership: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            {/* PROFESSIONAL */}
+            <div className="card">
+              <h3 className="section-title">Professional Details</h3>
+              {console.log(form)}
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <select
+                  className="input"
+                  value={form.experience || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, experience: e.target.value })
+                  }
+                >
+                  <option value="">Select Experience *</option>
+
+                  {experienceOptions.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+                <select
+                  className="input"
+                  value={form.rating || ""}
+                  onChange={(e) => setForm({ ...form, rating: e.target.value })}
+                >
+                  <option value="">Select Rating *</option>
+
+                  {ratingOptions.map((item) => (
+                    <option key={item} value={item}>
+                      {item} Star
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  className="input"
+                  placeholder="Total Clients"
+                  value={form.clients || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, clients: e.target.value })
+                  }
+                />
+
+                <input
+                  className="input"
+                  placeholder="Consultation Fee"
+                  value={form.fee || ""}
+                  onChange={(e) => setForm({ ...form, fee: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* LOCATION */}
+            <div className="card">
+              <h3 className="section-title">Location Details</h3>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <select
+                  className="input"
+                  value={form.city || ""}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                >
+                  <option value="">Select City *</option>
+
+                  {cityOptions.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+
+                <select
+                  className="input"
+                  value={form.area || ""}
+                  onChange={(e) => setForm({ ...form, area: e.target.value })}
+                >
+                  <option value="">Select Area *</option>
+
+                  {areaOptions.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+
+                <textarea
+                  className="input md:col-span-2 h-24"
+                  placeholder="Office Address *"
+                  value={form.address || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, address: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            {/* SERVICES */}
+            <div className="card">
+              <h3 className="section-title">Services</h3>
+
+              <div className="grid md:grid-cols-3 gap-3">
+                {serviceOptions.map((service) => (
+                  <label
+                    key={service}
+                    className="flex items-center gap-2 border rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-500"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.services?.includes(service) || false}
+                      onChange={() => handleCheckbox("services", service)}
+                    />
+
+                    <span>{service}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* LANGUAGES */}
+            <div className="card">
+              <h3 className="section-title">Languages</h3>
+
+              <div className="grid md:grid-cols-4 gap-3">
+                {languageOptions.map((language) => (
+                  <label
+                    key={language}
+                    className="flex items-center gap-2 border rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-500"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.languages?.includes(language) || false}
+                      onChange={() => handleCheckbox("languages", language)}
+                    />
+
+                    <span>{language}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* CONTACT */}
+            <div className="card">
+              <h3 className="section-title">Contact Details</h3>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <input
+                  className="input"
+                  placeholder="Mobile Number *"
+                  value={form.mobile || ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      mobile: e.target.value.replace(/\D/g, ""),
+                    })
+                  }
+                />
+
+                <input
+                  className="input"
+                  placeholder="Email Address *"
+                  value={form.email || ""}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* ABOUT */}
+            <div className="card">
+              <h3 className="section-title">About Professional</h3>
+
+              <textarea
+                className="input h-36"
+                placeholder="Write professional bio *"
+                value={form.about || ""}
+                onChange={(e) => setForm({ ...form, about: e.target.value })}
+              />
+            </div>
+
+            {/* FAQ SECTION */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="section-title mb-0">
+                  Frequently Asked Questions
+                </h3>
+
+                <button
+                  type="button"
+                  onClick={addFaq}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
+                >
+                  + Add FAQ
+                </button>
+              </div>
+
+              {!form.faq?.length ? (
+                <div className="text-sm text-gray-400">No FAQ added</div>
+              ) : (
+                <div className="space-y-4">
+                  {form.faq.map((item, index) => (
+                    <div
+                      key={index}
+                      className="border rounded-xl p-4 bg-gray-50"
+                    >
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium text-sm">
+                          FAQ #{index + 1}
+                        </h4>
+
+                        <button
+                          type="button"
+                          onClick={() => removeFaq(index)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition"
+                        >
+                          <FontAwesomeIcon icon={faXmark} />
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          placeholder="Question"
+                          className="input"
+                          value={item.question}
+                          onChange={(e) =>
+                            handleFaqChange(index, "question", e.target.value)
+                          }
+                        />
+
+                        <textarea
+                          placeholder="Answer"
+                          className="input h-24"
+                          value={item.answer}
+                          onChange={(e) =>
+                            handleFaqChange(index, "answer", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ACTIONS */}
+            <div className="sticky bottom-0 bg-white border-t pt-5 flex justify-end gap-3">
+              <button
+                onClick={onClose}
+                className="px-5 py-3 rounded-xl bg-gray-200 hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={validateAndSubmit}
+                className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+              >
+                {isEdit ? "Update Profile" : "Create Profile"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <style jsx>{`
+        .card {
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 5px;
+          padding: 15px;
+        }
+
+        .section-title {
+          font-size: 1rem;
+          font-weight: 700;
+          margin-bottom: 20px;
+          color: #000;
+        }
+
         .input {
-          border: 1px solid #ddd;
-          padding: 8px;
-          border-radius: 6px;
           width: 100%;
+          border: 1px solid #d1d5db;
+          background: #f9fafb;
+          border-radius: 5px;
+          padding: 7px;
+          outline: none;
+          transition: 0.2s;
+        }
+
+        .input:focus {
+          border-color: #000;
+          background: white;
+          box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
       `}</style>
     </div>
