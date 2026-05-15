@@ -207,6 +207,9 @@ export default function Dashboard() {
     setEditing(null);
     setForm(emptyForm);
     setModalOpen(true);
+    if (view === "location") {
+      fetchData();
+    }
   };
 
   const handleCreateProfile = async () => {

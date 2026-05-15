@@ -19,10 +19,29 @@ export default function LocationModal({
 
   // 📦 Fetch locations
   useEffect(() => {
-    fetch("/api/location")
-      .then((res) => res.json())
-      .then((data) => setParents(data || []));
-  }, []);
+    // only for area
+    if (form.type !== "area") return;
+
+    const fetchLocations = async () => {
+      try {
+        const res = await fetch("/api/location");
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch locations");
+        }
+
+        const data = await res.json();
+
+        setParents(data || []);
+      } catch (error) {
+        console.error("Location fetch error:", error);
+
+        setParents([]);
+      }
+    };
+
+    fetchLocations();
+  }, [form.type]);
 
   // 🔥 Normalize parent for edit mode
   useEffect(() => {
@@ -214,7 +233,7 @@ export default function LocationModal({
               }`}
             >
               <option value="">Select Parent City</option>
-
+              {console.log("parents", parents)}
               {parents
                 .filter((p) => p.type?.toLowerCase().trim() === "city")
                 .map((p) => (
