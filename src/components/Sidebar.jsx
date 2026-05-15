@@ -95,6 +95,17 @@ export default function Sidebar({ setView, view }) {
       >
         Page Content
       </button>
+
+      <button
+        onClick={() => setView("footer")}
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "footer"
+            ? "bg-blue-600 text-white"
+            : "hover:bg-gray-700"
+        }`}
+      >
+        Footer
+      </button>
     </div>
   );
 }

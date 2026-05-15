@@ -155,7 +155,7 @@ export default function DashboardProfile() {
   };
 
   useIdleTimer({
-    timeout: 1 * 60 * 1000,
+    timeout: 60 * 60 * 1000,
 
     onIdle: () => {
       setSessionExpired(true);
@@ -185,13 +185,11 @@ export default function DashboardProfile() {
               <img
                 src={user.image}
                 alt={user.name}
-                width={38}
-                height={38}
-                className="rounded-full object-cover"
+                className="rounded-full object-cove w-[35px] h-[35px] border rounded-full"
               />
 
               <div className="text-left">
-                <div className="text-sm font-medium">{user.name}</div>
+                <div className="text-sm font-bold">{user.name}</div>
 
                 <div className="text-xs text-gray-500 capitalize">
                   {user.role}

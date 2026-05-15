@@ -1,3 +1,5 @@
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useRef, useState } from "react";
 
 export default function UserProfileModal({ user, setOpenProfile, onUpdate }) {
@@ -42,12 +44,11 @@ export default function UserProfileModal({ user, setOpenProfile, onUpdate }) {
     <>
       <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
         <div className="bg-white rounded-2xl shadow-xl w-[420px] p-6 relative">
-          {/* Close Button */}
           <button
             onClick={() => setOpenProfile(false)}
-            className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
           >
-            ✕
+            <FontAwesomeIcon icon={faXmark} />
           </button>
 
           {/* Profile Section */}
@@ -57,7 +58,7 @@ export default function UserProfileModal({ user, setOpenProfile, onUpdate }) {
               <img
                 src={formData.image}
                 alt={formData.name}
-                className="w-28 h-28 rounded-full border-4 border-blue-500 object-cover"
+                className="w-20 h-20 rounded-full border-2 border-blue-500 object-cover"
               />
 
               {/* Change Image Overlay */}
@@ -77,28 +78,18 @@ export default function UserProfileModal({ user, setOpenProfile, onUpdate }) {
                 className="hidden"
               />
             </div>
-
-            {/* Editable Name */}
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="mt-4 text-2xl font-bold text-center border-b outline-none"
-            />
-
+            <p className="text-black mt-3">{formData.name}</p>
             <p className="text-gray-500 capitalize">{formData.role}</p>
           </div>
 
           {/* User Details */}
           <div className="mt-6 space-y-4">
-            {/* Email */}
             <div>
-              <label className="font-semibold">Email</label>
+              <label className="font-semibold">Name</label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="text"
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
                 className="w-full mt-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400"
               />
@@ -110,7 +101,11 @@ export default function UserProfileModal({ user, setOpenProfile, onUpdate }) {
               <input
                 type="text"
                 name="mobile"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={formData.mobile}
+                maxLength={10}
+                minLength={10}
                 onChange={handleChange}
                 className="w-full mt-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400"
               />

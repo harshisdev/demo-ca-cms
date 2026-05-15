@@ -3,7 +3,7 @@
 import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Pencil, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 export default function PageContentTable({ data, onEdit, onDelete }) {
   const [locations, setLocations] = useState([]);
@@ -29,24 +29,57 @@ export default function PageContentTable({ data, onEdit, onDelete }) {
     ]);
   }, [locations]);
 
-  if (!data.length) {
-    return <p className="text-gray-500">No page content found.</p>;
-  }
+  const groupedData = useMemo(() => {
+    // filter data
+    const filtered = data.filter((item) => {
+      const location = allLocations.find((loc) => loc.slug === item.path) || {};
 
-  const filteredData = data.filter((item) => {
-    const locationName =
-      allLocations.find((loc) => loc.slug === item.path)?.name || "";
+      const keyword = search.toLowerCase();
 
-    return (
-      locationName.toLowerCase().includes(search.toLowerCase()) ||
-      item.path?.toLowerCase().includes(search.toLowerCase()) ||
-      item.title?.toLowerCase().includes(search.toLowerCase())
-    );
-  });
+      return (
+        location.name?.toLowerCase().includes(keyword) ||
+        item.path?.toLowerCase().includes(keyword) ||
+        item.title?.toLowerCase().includes(keyword)
+      );
+    });
+
+    // group by parent city
+    const grouped = {};
+
+    filtered.forEach((item) => {
+      const location = allLocations.find((loc) => loc.slug === item.path) || {};
+
+      if (!location.name) return;
+
+      // detect parent city
+      let parentKey = location.name;
+
+      // child location
+      if (location.name.includes("(")) {
+        parentKey = location.name.split("(")[1].replace(")", "").trim();
+      }
+
+      // create group
+      if (!grouped[parentKey]) {
+        grouped[parentKey] = {
+          city: parentKey,
+          items: [],
+        };
+      }
+
+      // push item
+      grouped[parentKey].items.push({
+        ...item,
+        location,
+      });
+    });
+
+    return grouped;
+  }, [data, allLocations, search]);
 
   return (
-    <div className="overflow-x-auto">
-      <div className="mb-4">
+    <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="p-4 border-b">
         <input
           type="text"
           placeholder="Search by location, path, title..."
@@ -55,87 +88,106 @@ export default function PageContentTable({ data, onEdit, onDelete }) {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
-      <div className="px-4 py-2 border font-semibold">
-        Total Locations: {filteredData.length}
+      <div className="px-4 py-2 border-b font-semibold">
+        Total Locations:{" "}
+        {Object.values(groupedData).reduce(
+          (total, group) => total + group.items.length,
+          0,
+        )}{" "}
       </div>
-      <table className="w-full text-sm">
-        <thead className="bg-gray-100 text-black uppercase text-xs">
-          <tr>
-            <th className="text-left px-3 py-3 font-extrabold">Location</th>
-            <th className="text-left px-3 py-3 font-extrabold">Parent</th>
-            <th className="text-left px-3 py-3 font-extrabold">Slug</th>
-            <th className="text-left px-3 py-3 font-extrabold">Title</th>
-            <th className="text-left px-3 py-3 font-extrabold">Content Preview</th>
-            <th className=" px-3 py-3 text-right font-extrabold">Actions</th>
-          </tr>
-        </thead>
+      <div className="max-h-[500px] overflow-y-auto border rounded">
+        <table className="w-full text-sm border-collapse">
+          <thead className="bg-gray-100 text-black uppercase sticky top-0 z-10">
+            <tr>
+              <th className="text-left px-4 py-4 font-extrabold">Location</th>
+              <th className="text-left px-4 py-4 font-extrabold">Slug</th>
+              <th className="text-left px-4 py-4 font-extrabold">Title</th>
+              <th className="text-left px-4 py-4 font-extrabold">
+                Content Preview
+              </th>
+              <th className="text-right px-4 py-4 font-extrabold">Actions</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {filteredData.length > 0 ? (
-            filteredData.map((item) => (
-              <tr key={item._id} className="border-t">
-                <td className="px-3 py-2">
-                  {allLocations.find((loc) => loc.slug === item.path)?.name ||
-                    item.path}
-                </td>
-                <td className="px-3 py-2">
-                  {(() => {
-                    let parentName = "-";
+          <tbody>
+            {Object.values(groupedData).length > 0 ? (
+              Object.values(groupedData)
+                .sort((a, b) => a.city.localeCompare(b.city))
+                .map((group, groupIndex) => (
+                  <React.Fragment key={`${group.city}-${groupIndex}`}>
+                    {/* Parent City */}
+                    <tr className="bg-gray-100 sticky top-[48] z-10">
+                      <td
+                        colSpan={6}
+                        className="px-4 py-3 font-bold text-black text-base"
+                      >
+                        {group.city}
+                      </td>
+                    </tr>
 
-                    locations.forEach((loc) => {
-                      loc.children?.forEach((child) => {
-                        if (child.slug === item.path) {
-                          parentName = loc.name;
-                        }
-                      });
-                    });
+                    {/* Child Rows */}
+                    {group.items?.map((item) => (
+                      <tr key={item._id} className="border-t hover:bg-gray-50">
+                        {/* Location */}
+                        <td className="px-8 py-4 text-black font-medium">
+                          {item.location.name || item.path}
+                        </td>
 
-                    return parentName;
-                  })()}
-                </td>
-                <td className="px-3 py-2">{item.path}</td>
-                <td className="px-3 py-2">{item.title}</td>
-                <td className="px-3 py-2 text-sm text-gray-600 max-w-[300px]">
-                  <div className="truncate">
-                    {item.content
-                      ?.map((block) => {
-                        if (block.type === "ul") {
-                          return block.items?.join(", ");
-                        }
+                        {/* Slug */}
+                        <td className="px-4 py-4 text-black">{item.path}</td>
 
-                        return block.text;
-                      })
-                      .join(" ")
-                      .slice(0, 100)}
-                    ...
-                  </div>
-                </td>
-                <td className="px-3 py-2 flex justify-end gap-2">
-                  <button
-                    onClick={() => onEdit(item)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <Pencil size={18} />
-                  </button>
+                        {/* Title */}
+                        <td className="px-4 py-4 text-black">{item.title}</td>
 
-                  <button
-                    onClick={() => onDelete(item._id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                        {/* Content */}
+                        <td className="px-4 py-4 text-black text-sm text-gray-600 max-w-[300px]">
+                          <div className="truncate">
+                            {item.content
+                              ?.map((block) => {
+                                if (block.type === "ul") {
+                                  return block.items?.join(", ");
+                                }
+
+                                return block.text;
+                              })
+                              .join(" ")
+                              .slice(0, 100)}
+                            ...
+                          </div>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-4 py-4 text-black">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => onEdit(item)}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <Pencil size={18} />
+                            </button>
+
+                            <button
+                              onClick={() => onDelete(item._id)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
+                  No Page Content Found.
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={5} className="text-center py-6 text-gray-500">
-                No data found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

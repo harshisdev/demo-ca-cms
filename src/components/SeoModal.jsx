@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useEffect, useRef, useState } from "react";
 
 export default function SeoModal({
   isOpen,
@@ -14,8 +16,21 @@ export default function SeoModal({
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const dropdownRef = useRef(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const updateNested = (key, subKey, value) => {
     setForm({
@@ -45,18 +60,67 @@ export default function SeoModal({
     setSearch("");
   };
 
-  const filteredLocations = locations.filter((l) => {
-    const matchesSearch = l.name.toLowerCase().includes(search.toLowerCase());
+  const filteredLocations = locations
+    .map((location) => {
+      const parentMatch = location.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
-    const isAlreadySelected = data?.some((item) => item.path === l.slug); // 👈 check match
+      // parent selected or not
+      const isParentSelected = data?.some(
+        (item) => item.path === location.slug,
+      );
 
-    return matchesSearch && !isAlreadySelected; // 👈 exclude it
-  });
+      // filter children
+      const filteredChildren =
+        location.children?.filter((child) => {
+          const childMatch = child.name
+            .toLowerCase()
+            .includes(search.toLowerCase());
+
+          const isChildSelected = data?.some(
+            (item) => item.path === child.slug,
+          );
+
+          return childMatch && !isChildSelected;
+        }) || [];
+
+      // if no parent match and no child match
+      if (!parentMatch && filteredChildren.length === 0) {
+        return null;
+      }
+
+      return {
+        ...location,
+
+        // hide parent only if selected
+        hideParent: isParentSelected,
+
+        // show unselected children
+        children: parentMatch
+          ? (location.children || []).filter(
+              (child) => !data?.some((item) => item.path === child.slug),
+            )
+          : filteredChildren,
+      };
+    })
+    .filter(Boolean);
+
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-start pt-10 overflow-y-auto">
-      <div className="bg-white p-6 w-[700px] rounded">
-        <h2 className="text-lg font-bold mb-4">
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-start pt-10 overflow-y-auto z-20">
+      <div className="bg-white p-6 w-[700px] rounded relative">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+        >
+          <FontAwesomeIcon icon={faXmark} />
+        </button>
+
+        {/* Title */}
+        <h2 className="text-lg font-bold mb-6">
           {isEdit ? "Update SEO" : "Add SEO"}
         </h2>
 
@@ -76,7 +140,7 @@ export default function SeoModal({
             />
           </>
         ) : (
-          <div className="relative mb-2">
+          <div ref={dropdownRef} className="relative mb-2">
             <div
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="border p-2 w-full cursor-pointer"
@@ -85,7 +149,7 @@ export default function SeoModal({
             </div>
 
             {dropdownOpen && (
-              <div className="absolute z-10 bg-white border w-full max-h-60 overflow-y-auto shadow">
+              <div className="absolute z-30 bg-white border w-full min-h-[200px] max-h-[230px] overflow-y-auto shadow rounded-md">
                 <input
                   placeholder="Search..."
                   className="p-2 w-full border-b outline-none"
@@ -93,12 +157,28 @@ export default function SeoModal({
                   onChange={(e) => setSearch(e.target.value)}
                 />
                 {filteredLocations.map((l) => (
-                  <div
-                    key={l._id}
-                    onClick={() => handleSelect(l)}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    {l.name}
+                  <div key={l._id}>
+                    {/* Parent */}
+                    {!l.hideParent && (
+                      <div
+                        onClick={() => handleSelect(l)}
+                        className="p-2 hover:bg-gray-100 cursor-pointer font-semibold"
+                      >
+                        {l.name}
+                      </div>
+                    )}
+
+                    {/* Children */}
+                    {l.children?.length > 0 &&
+                      l.children.map((child) => (
+                        <div
+                          key={child._id}
+                          onClick={() => handleSelect(child)}
+                          className="p-2 pl-6 hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
+                        >
+                          {child.name}
+                        </div>
+                      ))}
                   </div>
                 ))}
 
@@ -179,13 +259,16 @@ export default function SeoModal({
           <button onClick={onClose} className="bg-gray-300 px-3 py-1">
             Cancel
           </button>
-
-          <button
-            onClick={onSubmit}
-            className="bg-green-600 text-white px-3 py-1"
-          >
-            {isEdit ? "Update" : "Create"}
-          </button>
+          {filteredLocations.some(
+            (location) => location.children?.length > 0,
+          ) && (
+            <button
+              onClick={onSubmit}
+              className="px-4 py-2 bg-green-600 text-white rounded"
+            >
+              {isEdit ? "Update" : "Create"}
+            </button>
+          )}
         </div>
       </div>
     </div>

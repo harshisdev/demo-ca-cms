@@ -95,10 +95,10 @@ export async function POST(req) {
       city: "City",
       experience: "Experience",
       about: "About",
-      phone: "Phone",
+      mobile: "Mobile",
       email: "Email",
       address: "Address",
-      profileimage: "Profile Image",
+      image: "Profile Image",
     };
 
     for (const key in requiredFields) {

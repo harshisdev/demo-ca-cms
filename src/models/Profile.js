@@ -36,13 +36,17 @@ const FAQSchema = new mongoose.Schema({
 });
 
 const WorkingHoursSchema = new mongoose.Schema({
-  monday: String,
-  tuesday: String,
-  wednesday: String,
-  thursday: String,
-  friday: String,
-  saturday: String,
-  sunday: String,
+  days: {
+    type: String,
+  },
+
+  from: {
+    type: String,
+  },
+
+  to: {
+    type: String,
+  },
 });
 
 const ProfileSchema = new mongoose.Schema(
@@ -149,7 +153,7 @@ const ProfileSchema = new mongoose.Schema(
     },
 
     // CONTACT
-    phone: {
+    mobile: {
       type: String,
       required: true,
     },
@@ -162,15 +166,14 @@ const ProfileSchema = new mongoose.Schema(
     },
 
     // IMAGE
-    profileimage: {
+    image: {
       type: String,
       required: true,
     },
-
     // WORKING HOURS
     workingHours: {
-      type: WorkingHoursSchema,
-      default: {},
+      type: [WorkingHoursSchema],
+      default: [],
     },
 
     // REVIEWS
@@ -198,13 +201,36 @@ const ProfileSchema = new mongoose.Schema(
       default: true,
     },
 
-    profileshowallpage: {
-      type: Boolean,
-      default: false,
+    profileVisibility: {
+      showProfile: {
+        type: Boolean,
+        default: false,
+      },
+
+      showOnAllPages: {
+        type: Boolean,
+        default: false,
+      },
+
+      locations: {
+        type: [
+          {
+            name: String,
+            slug: String,
+            type: String,
+          },
+        ],
+        default: [],
+      },
     },
   },
   { timestamps: true },
 );
 
-export default mongoose.models.Profile ||
-  mongoose.model("Profile", ProfileSchema);
+if (mongoose.models.Profile) {
+  delete mongoose.models.Profile;
+}
+
+const Profile = mongoose.model("Profile", ProfileSchema);
+
+export default Profile;

@@ -12,6 +12,8 @@ import PageContentTable from "../../components/PageContentTable";
 import PageContentModal from "../../components/PageContentModal";
 import toast from "react-hot-toast";
 import DashboardProfile from "@/components/DashboardProfile";
+import Loader from "@/components/Loader";
+import FooterCMS from "@/components/Footer";
 
 export default function Dashboard() {
   const [locations, setLocations] = useState([]);
@@ -208,41 +210,88 @@ export default function Dashboard() {
   };
 
   const handleCreateProfile = async () => {
-    await fetch("/api/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    toast.success("Profile created successfully!");
-    setModalOpen(false);
-    fetchProfiles();
+    try {
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success(data.message || "Profile created successfully!");
+
+        setModalOpen(false);
+
+        fetchProfiles();
+      } else {
+        toast.error(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.log(error);
+
+      toast.error("Failed to create profile");
+    }
   };
 
   const handleUpdateProfile = async () => {
-    await fetch("/api/profile", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        _id: editing._id, // ✅ FIXED
-        ...form,
-      }),
-    });
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          _id: editing._id,
+          ...form,
+        }),
+      });
 
-    toast.success("Profile updated successfully!");
+      const data = await res.json();
 
-    setModalOpen(false);
-    fetchProfiles();
+      if (data.success) {
+        toast.success(data.message || "Profile updated successfully!");
+
+        setModalOpen(false);
+
+        fetchProfiles();
+      } else {
+        toast.error(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.log(error);
+
+      toast.error("Failed to update profile");
+    }
   };
 
   const handleDeleteProfile = async (id) => {
-    await fetch("/api/profile", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    toast.success("Profile deleted successfully!");
+    try {
+      const res = await fetch("/api/profile", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
 
-    fetchProfiles();
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success(data.message || "Profile deleted successfully!");
+
+        fetchProfiles();
+      } else {
+        toast.error(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.log(error);
+
+      toast.error("Failed to delete profile");
+    }
   };
 
   const fetchSeo = async () => {
@@ -365,28 +414,31 @@ export default function Dashboard() {
                   ? "SEO Metadata"
                   : view === "page-content"
                     ? "Page Content"
-                    : null}
+                    : view === "footer"
+                      ? "Footer Content"
+                      : null}
           </h1>
-
-          <button
-            onClick={handleAddNew}
-            className="bg-green-600 text-white px-4 py-2 rounded"
-          >
-            + Add New{" "}
-            {view === "location"
-              ? "Location"
-              : view === "profile"
-                ? "Profile"
-                : view === "seo"
-                  ? "SEO"
-                  : "Page Content"}
-          </button>
+          {view !== "footer" ? (
+            <button
+              onClick={handleAddNew}
+              className="bg-green-600 text-white px-4 py-2 rounded"
+            >
+              + Add New{" "}
+              {view === "location"
+                ? "Location"
+                : view === "profile"
+                  ? "Profile"
+                  : view === "seo"
+                    ? "SEO"
+                    : "Page Content"}
+            </button>
+          ) : null}
 
           <DashboardProfile />
         </div>
 
         {loading ? (
-          <p>Loading...</p>
+          <Loader />
         ) : view === "location" ? (
           <LocationTable
             data={locations}
@@ -431,6 +483,8 @@ export default function Dashboard() {
             }}
             onDelete={handleDeletePageContent}
           />
+        ) : view === "footer" ? (
+          <FooterCMS />
         ) : null}
       </div>
       {/* MODAL */}
@@ -462,6 +516,7 @@ export default function Dashboard() {
           setForm={setForm}
           isEdit={!!editing}
           onSubmit={editing ? handleUpdateProfile : handleCreateProfile}
+          locations={locations}
         />
       ) : view === "seo" ? (
         <SeoModal

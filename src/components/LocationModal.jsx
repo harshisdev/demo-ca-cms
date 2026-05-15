@@ -90,7 +90,7 @@ export default function LocationModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-20">
       <div className="bg-white p-6 w-[500px] rounded-xl shadow-lg">
         {/* HEADER */}
         <h2 className="text-2xl font-bold mb-6">

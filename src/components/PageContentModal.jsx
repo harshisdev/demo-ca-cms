@@ -79,28 +79,51 @@ export default function PageContentModal({
     return loc ? loc.name : "—";
   };
 
-  // flatten cities + areas
-  const allLocations = locations.flatMap((loc) => [
-    {
-      ...loc,
-      displayName: loc.name,
-    },
+  const filteredLocations = locations
+    .map((location) => {
+      const parentMatch = location.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
-    ...(loc.children || []).map((child) => ({
-      ...child,
-      displayName: `${child.name} (${loc.name})`,
-    })),
-  ]);
+      // parent selected or not
+      const isParentSelected = data?.some(
+        (item) => item.path === location.slug,
+      );
 
-  const filteredLocations = allLocations.filter((l) => {
-    const matchesSearch = l.displayName
-      .toLowerCase()
-      .includes(search.toLowerCase());
+      // filter children
+      const filteredChildren =
+        location.children?.filter((child) => {
+          const childMatch = child.name
+            .toLowerCase()
+            .includes(search.toLowerCase());
 
-    const isAlreadySelected = data?.some((item) => item.path === l.slug);
+          const isChildSelected = data?.some(
+            (item) => item.path === child.slug,
+          );
 
-    return matchesSearch && !isAlreadySelected;
-  });
+          return childMatch && !isChildSelected;
+        }) || [];
+
+      // if no parent match and no child match
+      if (!parentMatch && filteredChildren.length === 0) {
+        return null;
+      }
+
+      return {
+        ...location,
+
+        // hide parent only if selected
+        hideParent: isParentSelected,
+
+        // show unselected children
+        children: parentMatch
+          ? (location.children || []).filter(
+              (child) => !data?.some((item) => item.path === child.slug),
+            )
+          : filteredChildren,
+      };
+    })
+    .filter(Boolean);
 
   const addBlock = (type) => {
     setContentBlocks([
@@ -138,17 +161,20 @@ export default function PageContentModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-start pt-10 z-50">
-      <div className="bg-white p-6 py-0 w-[800px] rounded shadow-lg max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white z-10 flex justify-between items-center mb-4 pb-2 pt-6">
-          <h2 className="text-lg font-bold">
-            {isEdit ? "Update Page Content" : "Add Page Content"}
-          </h2>
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-start pt-10 overflow-y-auto z-20">
+      <div className="bg-white p-6 w-[700px] rounded relative">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+        >
+          <FontAwesomeIcon icon={faXmark} />
+        </button>
 
-          <button onClick={onClose} className="text-gray-500 hover:text-black">
-            <FontAwesomeIcon icon={faXmark} className="text-xl" />
-          </button>
-        </div>
+        {/* Title */}
+        <h2 className="text-lg font-bold mb-6">
+          {isEdit ? "Update Page Content" : "Add Page Content"}
+        </h2>
 
         {isEdit ? (
           <>
@@ -174,7 +200,7 @@ export default function PageContentModal({
             </div>
 
             {dropdownOpen && (
-              <div className="absolute z-10 bg-white border w-full max-h-60 overflow-y-auto shadow">
+              <div className="absolute z-30 bg-white border w-full min-h-[200px] max-h-[230px] overflow-y-auto shadow rounded-md">
                 <input
                   placeholder="Search..."
                   className="p-2 w-full border-b outline-none"
@@ -182,12 +208,28 @@ export default function PageContentModal({
                   onChange={(e) => setSearch(e.target.value)}
                 />
                 {filteredLocations.map((l) => (
-                  <div
-                    key={l._id}
-                    onClick={() => handleSelect(l)}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    {l.displayName}
+                  <div key={l._id}>
+                    {/* Parent */}
+                    {!l.hideParent && (
+                      <div
+                        onClick={() => handleSelect(l)}
+                        className="p-2 hover:bg-gray-100 cursor-pointer font-semibold"
+                      >
+                        {l.name}
+                      </div>
+                    )}
+
+                    {/* Children */}
+                    {l.children?.length > 0 &&
+                      l.children.map((child) => (
+                        <div
+                          key={child._id}
+                          onClick={() => handleSelect(child)}
+                          className="p-2 pl-6 hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
+                        >
+                          {child.name}
+                        </div>
+                      ))}
                   </div>
                 ))}
 
@@ -280,13 +322,16 @@ export default function PageContentModal({
             <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
               Cancel
             </button>
-
-            <button
-              onClick={onSubmit}
-              className="px-4 py-2 bg-green-600 text-white rounded"
-            >
-              {isEdit ? "Update" : "Create"}
-            </button>
+            {filteredLocations.some(
+              (location) => location.children?.length > 0,
+            ) && (
+              <button
+                onClick={onSubmit}
+                className="px-4 py-2 bg-green-600 text-white rounded"
+              >
+                {isEdit ? "Update" : "Create"}
+              </button>
+            )}
           </div>
         </div>
       </div>

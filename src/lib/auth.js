@@ -34,7 +34,7 @@ export async function verifyAuth(req) {
     const diffMinutes = (now - lastActivity) / 1000 / 60;
 
     // Session expired
-    if (diffMinutes > 1) {
+    if (diffMinutes > 60) {
       // Clear session
       user.sessionId = null;
       user.isLoggedIn = false;
@@ -64,8 +64,8 @@ export async function verifyAuth(req) {
       };
     }
 
-    // Update activity every 2 minutes only
-    if (diffMinutes > 2) {
+    // Update activity every 60 minutes only
+    if (diffMinutes > 60) {
       user.lastActivity = new Date();
       await user.save();
     }
