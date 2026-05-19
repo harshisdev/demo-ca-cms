@@ -1,6 +1,3 @@
-import Breadcrumb from "@/components/Breadcrumb";
-import PageBanner from "@/components/PageBanner";
-
 export const metadata = {
   title: "Disclaimer | CA in Delhi NCR",
   description:
