@@ -61,17 +61,7 @@ export default function Sidebar({ setView, view }) {
           view === "location" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
         }`}
       >
-        Locations
-      </button>
-
-      {/* CA Profiles */}
-      <button
-        onClick={() => setView("profile")}
-        className={`block w-full text-left p-2 rounded mb-2 transition ${
-          view === "profile" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
-        }`}
-      >
-        CA Profiles
+        Add New Locations
       </button>
 
       {/* SEO */}
@@ -81,7 +71,7 @@ export default function Sidebar({ setView, view }) {
           view === "seo" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
         }`}
       >
-        SEO Metadata
+        Add SEO Metadata
       </button>
 
       {/* Page Content */}
@@ -93,18 +83,70 @@ export default function Sidebar({ setView, view }) {
             : "hover:bg-gray-700"
         }`}
       >
-        Page Content
+        Update Page Content
+      </button>
+
+      {/* CA Profiles */}
+      <button
+        onClick={() => setView("profile")}
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "profile" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
+        }`}
+      >
+        Add CA Profiles
+      </button>
+
+      <button
+        onClick={() => setView("home")}
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "home" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
+        }`}
+      >
+        Update Home Page
+      </button>
+      <button
+        onClick={() => setView("about")}
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "about" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
+        }`}
+      >
+        Update About Page
+      </button>
+
+      <button
+        onClick={() => setView("services")}
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "services" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
+        }`}
+      >
+        Update Services Page
+      </button>
+
+      <button
+        onClick={() => setView("blog")}
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "blog" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
+        }`}
+      >
+        Update Blog Page
+      </button>
+
+       <button
+        onClick={() => setView("contact")}
+        className={`block w-full text-left p-2 rounded mb-2 transition ${
+          view === "contact" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
+        }`}
+      >
+        Update Contact Us
       </button>
 
       <button
         onClick={() => setView("footer")}
         className={`block w-full text-left p-2 rounded mb-2 transition ${
-          view === "footer"
-            ? "bg-blue-600 text-white"
-            : "hover:bg-gray-700"
+          view === "footer" ? "bg-blue-600 text-white" : "hover:bg-gray-700"
         }`}
       >
-        Footer
+        Update Footer
       </button>
     </div>
   );

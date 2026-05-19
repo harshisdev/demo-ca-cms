@@ -14,6 +14,11 @@ import toast from "react-hot-toast";
 import DashboardProfile from "../../components/DashboardProfile";
 import FooterCMS from "../../components/Footer";
 import Loader from "../../components/Loader";
+import Home from "../../components/Home";
+import Blog from "../../components/Blog";
+import About from "../../components/About";
+import Services from "../../components/Services";
+import ContactUs from "../../components/ContactUs";
 
 export default function Dashboard() {
   const [locations, setLocations] = useState([]);
@@ -416,9 +421,21 @@ export default function Dashboard() {
                     ? "Page Content"
                     : view === "footer"
                       ? "Footer Content"
-                      : null}
+                      : view === "home"
+                        ? "Home Page"
+                        : view === "about"
+                          ? "About Page"
+                          : view === "blog"
+                            ? "Blog Page"
+                            : view === "contact"
+                              ? "Contact Page"
+                              : view === "services"
+                                ? "Services Page"
+                                : "Dashboard"}
           </h1>
-          {view !== "footer" ? (
+          {!["footer", "home", "about", "blog", "contact", "services"].includes(
+            view,
+          ) ? (
             <button
               onClick={handleAddNew}
               className="bg-green-600 text-white px-4 py-2 rounded"
@@ -483,6 +500,16 @@ export default function Dashboard() {
             }}
             onDelete={handleDeletePageContent}
           />
+        ) : view === "home" ? (
+          <Home />
+        ) : view === "about" ? (
+          <About />
+        ) : view === "services" ? (
+          <Services />
+        ) : view === "blog" ? (
+          <Blog />
+        ) : view === "contact" ? (
+          <ContactUs />
         ) : view === "footer" ? (
           <FooterCMS />
         ) : null}
