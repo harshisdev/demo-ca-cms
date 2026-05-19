@@ -19,7 +19,7 @@ export default function Header() {
     const fetchLocations = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}api/location`,
+          `/api/location`,
         );
 
         const data = await response.json();
