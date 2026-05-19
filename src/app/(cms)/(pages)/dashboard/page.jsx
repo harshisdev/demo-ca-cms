@@ -11,9 +11,9 @@ import SeoModal from "../../components/SeoModal";
 import PageContentTable from "../../components/PageContentTable";
 import PageContentModal from "../../components/PageContentModal";
 import toast from "react-hot-toast";
-import DashboardProfile from "@/components/DashboardProfile";
-import Loader from "@/components/Loader";
-import FooterCMS from "@/components/Footer";
+import DashboardProfile from "../../components/DashboardProfile";
+import FooterCMS from "../../components/Footer";
+import Loader from "../../components/Loader";
 
 export default function Dashboard() {
   const [locations, setLocations] = useState([]);
@@ -207,9 +207,6 @@ export default function Dashboard() {
     setEditing(null);
     setForm(emptyForm);
     setModalOpen(true);
-    if (view === "location") {
-      fetchData();
-    }
   };
 
   const handleCreateProfile = async () => {

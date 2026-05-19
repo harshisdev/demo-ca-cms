@@ -2,10 +2,9 @@
 
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export default function PageContentModal({
+export default function SeoModal({
   isOpen,
   onClose,
   form,
@@ -15,16 +14,8 @@ export default function PageContentModal({
   locations,
   data,
 }) {
-  const [paths, setPaths] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [contentBlocks, setContentBlocks] = useState([
-    {
-      type: "p",
-      text: "",
-    },
-  ]);
-
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -41,27 +32,23 @@ export default function PageContentModal({
     };
   }, []);
 
-  // useEffect(() => {
-  //   const fetchPaths = async () => {
-  //     const [locRes, profRes] = await Promise.all([
-  //       fetch("/api/location"),
-  //       fetch("/api/profile"),
-  //     ]);
+  const updateNested = (key, subKey, value) => {
+    setForm({
+      ...form,
+      [key]: {
+        ...form[key],
+        [subKey]: value,
+      },
+    });
+  };
 
-  //     const locations = await locRes.json();
-  //     const profiles = await profRes.json();
+  // ✅ get location name
+  const getLocationName = (path) => {
+    const loc = locations.find((l) => l.slug === path);
+    return loc ? loc.name : "—";
+  };
 
-  //     const locationPaths = locations.map((l) => `/${l.slug}`);
-  //     const profilePaths = profiles?.map((p) => `/ca/${p.slug}`);
-
-  //     setPaths([...locationPaths, ...profilePaths]);
-  //   };
-
-  //   fetchPaths();
-  // }, []);
-
-  if (!isOpen) return null;
-
+  // ✅ select location
   const handleSelect = (l) => {
     setForm({
       ...form,
@@ -71,12 +58,6 @@ export default function PageContentModal({
     });
     setDropdownOpen(false);
     setSearch("");
-  };
-
-  // ✅ get location name
-  const getLocationName = (path) => {
-    const loc = locations.find((l) => l.slug === path);
-    return loc ? loc.name : "—";
   };
 
   const filteredLocations = locations
@@ -125,40 +106,7 @@ export default function PageContentModal({
     })
     .filter(Boolean);
 
-  const addBlock = (type) => {
-    setContentBlocks([
-      ...contentBlocks,
-      type === "ul" ? { type, items: [""] } : { type, text: "" },
-    ]);
-  };
-
-  const updateBlock = (index, value) => {
-    const updated = [...contentBlocks];
-
-    if (updated[index].type === "ul") {
-      updated[index].items = value.split("\n");
-    } else {
-      updated[index].text = value;
-    }
-
-    setContentBlocks(updated);
-
-    setForm({
-      ...form,
-      content: updated,
-    });
-  };
-
-  const deleteBlock = (index) => {
-    const updated = contentBlocks.filter((_, i) => i !== index);
-
-    setContentBlocks(updated);
-
-    setForm({
-      ...form,
-      content: updated,
-    });
-  };
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-start pt-10 overflow-y-auto z-20">
@@ -173,9 +121,10 @@ export default function PageContentModal({
 
         {/* Title */}
         <h2 className="text-lg font-bold mb-6">
-          {isEdit ? "Update Page Content" : "Add Page Content"}
+          {isEdit ? "Update SEO" : "Add SEO"}
         </h2>
 
+        {/* ✅ CONDITIONAL UI FIXED */}
         {isEdit ? (
           <>
             <input
@@ -247,92 +196,76 @@ export default function PageContentModal({
             )}
           </div>
         )}
-        {/* TITLE */}
+
+        {/* BASIC SEO */}
+        <h3 className="font-semibold mt-4">Basic SEO</h3>
+
         <input
-          placeholder="Page Title"
-          className="border p-2 w-full mb-3"
+          placeholder="Title"
+          className="border p-2 w-full mb-2"
           value={form.title || ""}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
         />
-        <div className="space-y-3">
-          {contentBlocks.map((block, index) => (
-            <div key={index} className="border p-3 rounded">
-              <div className="flex justify-between items-center mb-2">
-                <div className="text-xs text-gray-500 uppercase">
-                  {block.type}
-                </div>
 
-                <button
-                  type="button"
-                  onClick={() => deleteBlock(index)}
-                  className="text-red-500 text-xs hover:text-red-700"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
+        <textarea
+          placeholder="Description"
+          className="border p-2 w-full mb-2"
+          value={form.description || ""}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+        />
 
-              {block.type === "ul" ? (
-                <textarea
-                  className="border p-2 w-full h-24"
-                  placeholder="One item per line"
-                  value={block.items.join("\n")}
-                  onChange={(e) => updateBlock(index, e.target.value)}
-                />
-              ) : (
-                <textarea
-                  className="border p-2 w-full h-24"
-                  value={block.text}
-                  onChange={(e) => updateBlock(index, e.target.value)}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        {/* ACTIONS */}
-        <div className="sticky bottom-0 left-0 right-0 bg-white z-20  py-4 shadow-sm">
-          <div className="flex gap-2 flex-wrap">
-            {["h1", "h2", "h3", "h4", "h5", "h6"].map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => addBlock(tag)}
-                className="bg-gray-200 px-2 py-1 rounded"
-              >
-                + {tag.toUpperCase()}
-              </button>
-            ))}
+        <input
+          placeholder="Keywords"
+          className="border p-2 w-full mb-2"
+          value={form.keywords?.join(", ") || ""}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              keywords: e.target.value.split(",").map((k) => k.trim()),
+            })
+          }
+        />
 
-            <button
-              type="button"
-              onClick={() => addBlock("p")}
-              className="bg-gray-200 px-2 py-1 rounded"
-            >
-              + Paragraph
-            </button>
+        <input
+          placeholder="Canonical URL"
+          className="border p-2 w-full mb-2"
+          value={form.canonical || ""}
+          onChange={(e) => setForm({ ...form, canonical: e.target.value })}
+        />
 
-            <button
-              type="button"
-              onClick={() => addBlock("ul")}
-              className="bg-gray-200 px-2 py-1 rounded"
-            >
-              + UL List
-            </button>
-          </div>
-          <div className="flex justify-end gap-3 mt-3">
-            <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
-              Cancel
-            </button>
-            {filteredLocations.some(
-              (location) => location.children?.length > 0,
-            ) && (
-              <button
-                onClick={onSubmit}
-                className="px-4 py-2 bg-green-600 text-white rounded"
-              >
-                {isEdit ? "Update" : "Create"}
-              </button>
-            )}
-          </div>
+        {/* ROBOTS */}
+        <h3 className="font-semibold mt-4">Robots</h3>
+
+        <select
+          className="border p-2 w-full mb-2"
+          value={form.robots?.index || "index"}
+          onChange={(e) => updateNested("robots", "index", e.target.value)}
+        >
+          <option value="index">Index</option>
+          <option value="noindex">No Index</option>
+        </select>
+
+        <select
+          className="border p-2 w-full mb-2"
+          value={form.robots?.follow || "follow"}
+          onChange={(e) => updateNested("robots", "follow", e.target.value)}
+        >
+          <option value="follow">Follow</option>
+          <option value="nofollow">No Follow</option>
+        </select>
+
+        {/* ACTION */}
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onClose} className="bg-gray-300 px-3 py-1">
+            Cancel
+          </button>
+
+          <button
+            onClick={onSubmit}
+            className="px-4 py-2 bg-green-600 text-white rounded"
+          >
+            {isEdit ? "Update" : "Create"}
+          </button>
         </div>
       </div>
     </div>

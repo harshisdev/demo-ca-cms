@@ -233,7 +233,6 @@ export default function LocationModal({
               }`}
             >
               <option value="">Select Parent City</option>
-              {console.log("parents", parents)}
               {parents
                 .filter((p) => p.type?.toLowerCase().trim() === "city")
                 .map((p) => (
